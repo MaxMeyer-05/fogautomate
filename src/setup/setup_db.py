@@ -1,6 +1,7 @@
+import os
 import sys
 import json
-import mysql.connector
+import subprocess
 from pathlib import Path
 
 root_path = Path(__file__).resolve().parent.parent.parent
@@ -14,32 +15,40 @@ def create_database():
     """
     Create the database if it doesn't exist.
     """
-    db_name = FOG_DB_CONFIG.get('database')    
-    server_config = {k: v for k, v in FOG_DB_CONFIG.items() if k != 'database'}
+    db_name = FOG_DB_CONFIG.get('database')
+    db_user = FOG_DB_CONFIG.get('user')
+    
+    sql_commands = f"""
+    CREATE DATABASE IF NOT EXISTS `{db_name}`;
+    GRANT ALL PRIVILEGES ON `{db_name}`.* TO '{db_user}'@'localhost';
+    FLUSH PRIVILEGES;
+    """
     
     try:
-        print(f">>> Checking if database '{db_name}' exists...")
-        conn = mysql.connector.connect(**server_config)
-        cursor = conn.cursor()
+        print(f">>> Provisioning database '{db_name}' and granting access to '{db_user}'...")
         
-        # Safely create the database using the name from .env
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}`;")
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-        print(f">>> Database '{db_name}' is ready.")
+        result = subprocess.run(
+            ["mysql", "-u", "root", "-e", sql_commands],
+            check=True,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print(f">>> Database '{db_name}' provisioned successfully.")
         
-    except mysql.connector.Error as e:
-        logging.error(f"Failed to provision database '{db_name}': {e}", exc_info=True)
-        print(f">>> CRITICAL ERROR: Could not create the database '{db_name}'. Check logs for details.")
+    except subprocess.CalledProcessError as e:
+        error_msg = e.stderr.strip() if e.stderr else str(e)
+        logging.error(f"Failed to provision database via mysql CLI: {error_msg}")
+        print(f">>> CRITICAL ERROR: Could not provision database: {error_msg}")
+        sys.exit(1)
+    except FileNotFoundError:
+        print(">>> CRITICAL ERROR: 'mysql' command not found. Is MariaDB installed?")
         sys.exit(1)
 
 def setup_database():
     """
     Set up the database schema and initial data.
     """
-    print(">>> Setting up the database...")
+    print(">>> Setting up the database schema...")
     try:
         with db_session() as conn:
             cursor = conn.cursor()
@@ -109,12 +118,16 @@ def setup_database():
                     logging.info(f"Master Data Setup: {len(entries)} rooms synced to MariaDB.")
 
             conn.commit()
-            print(">>> Database Setup complete. Database ready for automation.")
+            print(">>> Database Setup complete. Ready for automation.")
             
     except Exception as e:
-        logging.error(f"Fatal error during database setup: {e}", exc_info=True)
+        logging.error("Fatal error during database setup.", exc_info=True)
         print(f">>> Error: Database setup failed. Check logs for details.")
 
 if __name__ == "__main__":
+    if os.geteuid() != 0: # Check if the script is run as root (getuid() only exists on Linux and Unix systems)
+        print(">>> ERROR: This setup script must be run as root (sudo).")
+        sys.exit(1)
+        
     create_database()
     setup_database()

@@ -108,7 +108,7 @@ Add the following schedules to orchestrate the automation suite (adjust the path
 # 4. Storage Health Check: Runs twice a day (at 08:00 and 20:00)
 0 8,20 * * * /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/monitoring/check_storage.py
 
-# 5. Task Monitoring: Runs every hour (from 07:00 to 19:00 on all weekdays)
+# 5. Task Monitoring: Runs at the bottom of the hour (from 07:00 to 19:00 on all weekdays)
 30 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/monitoring/monitor_tasks.py
 ```
 
