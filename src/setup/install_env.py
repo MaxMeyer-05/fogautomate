@@ -40,7 +40,8 @@ def install_dependencies():
         "git", 
         "python3", 
         "python3-requests", 
-        "python3-mysql.connector"
+        "python3-mysql.connector",
+        "python3-dotenv"
     ]
 
     print("\n>>> Installing required packages...")

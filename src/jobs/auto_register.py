@@ -38,6 +38,13 @@ def get_tracked_macs(db_cursor) -> Dict[str, str]:
     db_cursor.execute("SELECT m.mac_address, t.last_ip FROM host_macs m JOIN host_tracking t ON m.host_id = t.host_id")
     return {row['mac_address']: row['last_ip'] for row in db_cursor.fetchall()}
 
+def fetch_fog_hosts() -> List[Dict[str, Any]]:
+    success, hosts_data = fog_api_request("GET", "host?limit=2000")
+    if not success or not hosts_data:
+        return []
+    raw_data = hosts_data.get('hosts', [])
+    return list(raw_data.values()) if isinstance(raw_data, dict) else raw_data
+
 def update_local_tracking(db_cursor, host_id: int, host_name: str, host_ip: str, host_macs: List[str], target_group_id: int):
     """
     Update local tracking information for a host in the database.
@@ -56,12 +63,8 @@ def update_local_tracking(db_cursor, host_id: int, host_name: str, host_ip: str,
     """, (host_id, host_name, host_ip, target_group_id))
     
     db_cursor.execute("DELETE FROM host_macs WHERE host_id = %s", (host_id,))
-    
     for mac in host_macs:
-        db_cursor.execute("""
-            INSERT INTO host_macs (mac_address, host_id) 
-            VALUES (%s, %s) 
-        """, (mac, host_id))
+        db_cursor.execute("INSERT INTO host_macs (mac_address, host_id) VALUES (%s, %s)", (mac, host_id))
 
 def get_all_macs(host: Dict[str, Any]) -> List[str]:
     """
@@ -72,7 +75,6 @@ def get_all_macs(host: Dict[str, Any]) -> List[str]:
         List[str]: A list of MAC addresses.
     """
     macs = set()
-    
     primac = host.get('primac', '').lower()
     if primac:
         macs.add(primac)
@@ -84,7 +86,7 @@ def get_all_macs(host: Dict[str, Any]) -> List[str]:
                 if isinstance(item, str):
                     macs.add(item.lower())
                 elif isinstance(item, dict) and item.get('mac'):
-                    macs.add(item.get('mac', '').lower())
+                    macs.add(str(item.get('mac', '')).lower())
                     
     invalid_macs = {'', '00:00:00:00:00:00', '00-00-00-00-00-00'}
     return [m for m in macs if m not in invalid_macs]
@@ -129,7 +131,7 @@ def handle_duplicate_macs(all_hosts: List[Dict[str, Any]], db_cursor) -> List[Di
     hosts_to_delete: Set[int] = set()
     
     for host in all_hosts:
-        host_id = int(host.get('id', 0))
+        host_id = int(str(host.get('id', '0')))
         all_macs = get_all_macs(host)
         
         if not all_macs or not host_id:
@@ -146,9 +148,9 @@ def handle_duplicate_macs(all_hosts: List[Dict[str, Any]], db_cursor) -> List[Di
             else:
                 mac_to_host[mac] = host_id
             
-    valid_hosts: List[Dict[str, Any]] = []
+    valid_hosts = []
     for host in all_hosts:
-        host_id = int(host.get('id', 0))
+        host_id = int(str(host.get('id', '0')))
         host_name = host.get('name', '')
         
         if host_id in hosts_to_delete:
@@ -160,18 +162,18 @@ def handle_duplicate_macs(all_hosts: List[Dict[str, Any]], db_cursor) -> List[Di
             
     return valid_hosts
 
-def trigger_host_imaging(host_id: int, host_name: str) -> bool:
+def approve_pending_host(host_id: int, host_name: str) -> bool:
     """
-    Trigger imaging for a host.
+    Approve a pending host registration.
     Args:
-        host_id (int): The ID of the host.
+        host_id (int): The ID of the host to approve.
         host_name (str): The name of the host.
     Returns:
-        bool: True if the imaging was successfully triggered, False otherwise.
+        bool: True if the host was approved, False otherwise.
     """
-    success, _ = fog_api_request("POST", f"host/{host_id}/task", {"taskTypeID": 1})
+    success, _ = fog_api_request("PUT", f"host/{host_id}", {"hostPending": "0", "pending": "0"})
     if success:
-        logging.info(f"IMAGING TRIGGERED for {host_name}.")
+        logging.info(f"APPROVED: {host_name}.")
     return success
 
 def update_host_groups(host_id: int, host_name: str, target_group_id: int, valid_room_ids: List[int]) -> bool:
@@ -191,21 +193,23 @@ def update_host_groups(host_id: int, host_name: str, target_group_id: int, valid
         
     associations = host_detail.get('groupAssociations', [])
     current_room_groups = [
-        int(g.get('groupID') or g.get('id', 0)) 
+        int(str(g.get('groupID') or g.get('id', '0')))
         for g in associations 
-        if int(g.get('groupID') or g.get('id', 0)) in valid_room_ids
+        if int(str(g.get('groupID') or g.get('id', '0'))) in valid_room_ids
     ]
     
     needs_imaging = False
     
+    # Remove from old rooms if moved
     if current_room_groups and target_group_id not in current_room_groups:
         logging.info(f"MOVE DETECTED: {host_name} changed rooms.")
         for assoc in associations:
-            assoc_group_id = int(assoc.get('groupID') or assoc.get('id', 0))
+            assoc_group_id = int(str(assoc.get('groupID') or assoc.get('id', '0')))
             if assoc_group_id in current_room_groups:
                 fog_api_request("DELETE", f"groupassociation/{assoc.get('id')}")
         needs_imaging = True
 
+    # Add to new room
     if target_group_id not in current_room_groups:
         assign_success, _ = fog_api_request("POST", "groupassociation", {"hostID": host_id, "groupID": target_group_id})
         if assign_success:
@@ -221,47 +225,37 @@ def process_new_hosts():
     if not rooms:
         return
     
-    valid_room_ids = [int(r['fog_group_id']) for r in rooms]
+    valid_room_ids = [int(str(r['fog_group_id'])) for r in rooms]
     
     try:
         with db_session() as db_conn:
             db_cursor = db_conn.cursor(dictionary=True)
             tracked_macs = get_tracked_macs(db_cursor)
             
-            success, hosts_data = fog_api_request("GET", "host?limit=2000")
-            if not success or not hosts_data:
+            all_hosts = fetch_fog_hosts()
+            if not all_hosts:
                 return
                 
-            raw_data = hosts_data.get('hosts', [])
-            all_hosts = list(raw_data.values()) if isinstance(raw_data, dict) else raw_data
-            
             valid_hosts = handle_duplicate_macs(all_hosts, db_cursor)
             db_conn.commit()
             
             for host in valid_hosts:
-                host_id = int(host.get('id', 0))
-                host_name = host.get('name', '')
-                host_ip = host.get('ip', '')
+                host_id = int(str(host.get('id', '0')))
+                host_name = str(host.get('name', ''))
+                host_ip = str(host.get('ip', ''))
                 all_macs = get_all_macs(host)
                 
                 is_pending = str(host.get('pending', '0')) == '1' or str(host.get('hostPending', '0')) == '1'
                 is_new_registration = False
                 
                 if is_pending:
-                    app_success, _ = fog_api_request("PUT", f"host/{host_id}", {"hostPending": "0", "pending": "0"})
-                    if app_success:
-                        logging.info(f"APPROVED: {host_name}.")
-                        is_new_registration = True
+                    is_new_registration = approve_pending_host(host_id, host_name)
                     
                 if not host_ip or not all_macs:
                     continue
 
-                last_known_ip = None
-                for mac in all_macs:
-                    if mac in tracked_macs:
-                        last_known_ip = tracked_macs[mac]
-                        break
-
+                # IP caching check
+                last_known_ip = next((tracked_macs[m] for m in all_macs if m in tracked_macs), None)
                 if last_known_ip == host_ip and not is_new_registration:
                     continue 
 
@@ -269,23 +263,21 @@ def process_new_hosts():
                 if not room: 
                     continue 
 
-                target_group_id = int(room['fog_group_id'])
+                target_group_id = int(str(room['fog_group_id']))
                 
                 needs_imaging = update_host_groups(host_id, host_name, target_group_id, valid_room_ids)
-                if is_new_registration:
-                    needs_imaging = True
-
-                if needs_imaging:
-                    trigger_host_imaging(host_id, host_name)
+                if is_new_registration or needs_imaging:
+                    fog_api_request("POST", f"host/{host_id}/task", {"taskTypeID": 1})
+                    logging.info(f"IMAGING TRIGGERED for {host_name}.")
 
                 update_local_tracking(db_cursor, host_id, host_name, host_ip, all_macs, target_group_id)
                 db_conn.commit() 
 
     except Exception as e:
-        logging.error(f"Fatal error in process_new_hosts workflow: {e}", exc_info=True)
+        logging.error("Fatal error in process_new_hosts workflow.", exc_info=True)
         mailer._send_email(
             "[CRITICAL] Auto-Register Execution Failure",
-            f"The host registration script crashed unexpectedly. Check the logs for details.",
+            f"The host registration script crashed unexpectedly.\n\nError: {e}",
             priority="high"
         )
 
@@ -294,24 +286,21 @@ def cleanup_stale_hosts():
     Clean up stale hosts by removing them from group associations if they haven't pinged recently.
     """
     try:
-        success, hosts_data = fog_api_request("GET", "host?limit=2000")
-        if not success or not hosts_data:
+        all_hosts = fetch_fog_hosts()
+        if not all_hosts:
             return
             
-        raw_data = hosts_data.get('hosts', [])
-        all_hosts = list(raw_data.values()) if isinstance(raw_data, dict) else raw_data
-        
         cutoff_date = datetime.now() - timedelta(days=14)
         
         for host in all_hosts:
-            last_time = host.get('pingtime', '0000-00-00 00:00:00')
+            last_time = str(host.get('pingtime', '0000-00-00 00:00:00'))
             if last_time == '0000-00-00 00:00:00':
                 continue
                 
             try:
                 ping_dt = datetime.strptime(last_time, '%Y-%m-%d %H:%M:%S')
                 if ping_dt < cutoff_date:
-                    host_id = host['id']
+                    host_id = int(str(host['id']))
                     
                     detail_success, host_detail = fog_api_request("GET", f"host/{host_id}")
                     if not detail_success or not host_detail:
@@ -319,20 +308,22 @@ def cleanup_stale_hosts():
                         
                     removed_count = 0
                     for assoc in host_detail.get('groupAssociations', []):
-                        del_success, _ = fog_api_request("DELETE", f"groupassociation/{assoc.get('id')}")
-                        if del_success:
-                            removed_count += 1
+                        assoc_id = assoc.get('id')
+                        if assoc_id:
+                            del_success, _ = fog_api_request("DELETE", f"groupassociation/{assoc_id}")
+                            if del_success:
+                                removed_count += 1
                     
                     if removed_count > 0:
-                        logging.info(f"STALE CLEANUP: '{host['name']}' removed from {removed_count} group(s).")
+                        logging.info(f"STALE CLEANUP: '{host.get('name')}' removed from {removed_count} group(s).")
             except ValueError:
                 pass 
                 
     except Exception as e:
-        logging.error(f"Fatal error in cleanup_stale_hosts workflow: {e}", exc_info=True)
+        logging.error("Fatal error in cleanup_stale_hosts workflow.", exc_info=True)
         mailer._send_email(
             "[CRITICAL] Stale Hosts Cleanup Failure",
-            f"The host cleanup script crashed unexpectedly. Check the logs for details.",
+            f"The host cleanup script crashed unexpectedly.\n\nError: {e}",
             priority="high"
         )
 

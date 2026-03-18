@@ -1,13 +1,39 @@
 import sys
 import json
+import mysql.connector
 from pathlib import Path
 
 root_path = Path(__file__).resolve().parent.parent.parent
 if str(root_path) not in sys.path:
     sys.path.append(str(root_path))
 
-from config.config import ROOM_MAP_JSON, logging
+from config.config import ROOM_MAP_JSON, FOG_DB_CONFIG, logging
 from src.utils import db_session
+
+def create_database():
+    """
+    Create the database if it doesn't exist.
+    """
+    db_name = FOG_DB_CONFIG.get('database')    
+    server_config = {k: v for k, v in FOG_DB_CONFIG.items() if k != 'database'}
+    
+    try:
+        print(f">>> Checking if database '{db_name}' exists...")
+        conn = mysql.connector.connect(**server_config)
+        cursor = conn.cursor()
+        
+        # Safely create the database using the name from .env
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}`;")
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        print(f">>> Database '{db_name}' is ready.")
+        
+    except mysql.connector.Error as e:
+        logging.error(f"Failed to provision database '{db_name}': {e}", exc_info=True)
+        print(f">>> CRITICAL ERROR: Could not create the database '{db_name}'. Check logs for details.")
+        sys.exit(1)
 
 def setup_database():
     """
@@ -90,4 +116,5 @@ def setup_database():
         print(f">>> Error: Database setup failed. Check logs for details.")
 
 if __name__ == "__main__":
+    create_database()
     setup_database()
