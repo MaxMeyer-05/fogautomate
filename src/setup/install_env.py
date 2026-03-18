@@ -1,13 +1,6 @@
 import os
 import sys
 import subprocess
-from pathlib import Path
-
-root_path = Path(__file__).resolve().parent.parent.parent
-if str(root_path) not in sys.path:
-    sys.path.append(str(root_path))
-
-from config.config import logging
 
 def run_command(command: list, interactive: bool = False):
     """
@@ -23,8 +16,7 @@ def run_command(command: list, interactive: bool = False):
             subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True
     except subprocess.CalledProcessError as e:
-        logging.error(f"Command '{' '.join(command)}' failed with exit code {e.returncode}.", exc_info=True)
-        print(f">>> Error: Command '{' '.join(command)}' failed. Check logs for details.")
+        print(f">>> Error: Command '{' '.join(command)}' failed with exit code {e.returncode}.")
         return False
 
 def install_dependencies():
@@ -37,8 +29,6 @@ def install_dependencies():
         sys.exit(1)
 
     packages = [
-        "git", 
-        "python3", 
         "python3-requests", 
         "python3-mysql.connector",
         "python3-dotenv"
@@ -79,8 +69,7 @@ def install_fog():
     try:
         subprocess.run(["bash", install_script], cwd=os.path.join(fog_dir, "bin"), check=True)
     except subprocess.CalledProcessError as e:
-        logging.error(f"FOG installation failed with exit code {e.returncode}.", exc_info=True)
-        print(f">>> Error: FOG installation failed. Check logs for details.")
+        print(f">>> Error: FOG installation failed with exit code {e.returncode}.")
         sys.exit(1)
 
 if __name__ == "__main__":
