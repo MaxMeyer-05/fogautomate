@@ -51,7 +51,7 @@ def install_fog():
     fog_dir = "/opt/fogproject"
 
     if not os.path.exists(fog_dir):
-        print(" -> Cloning FOG Server repository...")
+        print(" -> Cloning FOG Server repository (this may take a while)...")
         if not run_command(["git", "clone", "https://github.com/FOGProject/fogproject.git", fog_dir]):
             print(">>> Error: Failed to clone FOG repository. Check logs for details.")
             sys.exit(1)

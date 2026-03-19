@@ -40,7 +40,7 @@ Before initializing the custom database, you must configure your environment var
     ```bash
     # Database Configuration
     DB_HOST=127.0.0.1
-    DB_USER=fog
+    DB_USER=your_mariadb_username
     DB_PASSWORD=your_secure_mariadb_password
     DB_NAME=fog_automation
 

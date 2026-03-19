@@ -17,15 +17,17 @@ def create_database():
     """
     db_name = FOG_DB_CONFIG.get('database')
     db_user = FOG_DB_CONFIG.get('user')
+    db_password = FOG_DB_CONFIG.get('password')
     
     sql_commands = f"""
     CREATE DATABASE IF NOT EXISTS `{db_name}`;
+    CREATE USER IF NOT EXISTS '{db_user}'@'localhost' IDENTIFIED BY '{db_password}';
     GRANT ALL PRIVILEGES ON `{db_name}`.* TO '{db_user}'@'localhost';
     FLUSH PRIVILEGES;
     """
     
     try:
-        print(f">>> Provisioning database '{db_name}' and granting access to '{db_user}'...")
+        print(f">>> Provisioning database '{db_name}' and user '{db_user}'...")
         
         result = subprocess.run(
             ["mysql", "-u", "root", "-e", sql_commands],
@@ -38,7 +40,7 @@ def create_database():
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr.strip() if e.stderr else str(e)
         logging.error(f"Failed to provision database via mysql CLI: {error_msg}")
-        print(f">>> CRITICAL ERROR: Could not provision database: {error_msg}")
+        print(f">>> CRITICAL ERROR: Could not provision database. Check logs for details.")
         sys.exit(1)
     except FileNotFoundError:
         print(">>> CRITICAL ERROR: 'mysql' command not found. Is MariaDB installed?")
