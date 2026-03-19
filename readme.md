@@ -30,7 +30,7 @@ Run the environment installer as root:
 ```bash
 sudo python3 src/setup/install_env.py
 ```
-Note: The script will pause and ask you to answer the standard FOG Project installation prompts. Complete these before moving to Step 3.
+Note: The script also automatically installs the FOG server (you still have to answer the questions in the installation script yourself) or updates it if it is already installed.
 
 ### Step 3: Configuration
 
@@ -45,7 +45,7 @@ Before initializing the custom database, you must configure your environment var
     DB_NAME=fog_automation
 
     # FOG Server API
-    FOG_API_URL=[http://127.0.0.1/fog]
+    FOG_API_URL=http://127.0.0.1/fog
     FOG_TASK_TYPE=8
 
     # Email Notification System
@@ -80,6 +80,29 @@ sudo python3 src/setup/setup_db.py
 ```
 
 This script will safely build the `rooms`, `host_tracking`, and `host_macs` tables and insert your room data.
+
+---
+
+## Enable FOG API
+
+The FOG API is disabled by default for security reasons. You must enable it and generate two distinct keys—the System API Token and the User API Token—for the automation suite to communicate with the server.
+
+1. **Enable the Global API System**
+    * Login to your FOG Web UI (`http://<your-server-ip>/fog/management`).
+    * Then follow this steps:
+
+        ```bash
+        FOG Configuration -> FOG Settings -> API System
+        ```
+    * Check the box for FOG_API_SYSTEM_ENABLED and click Update at the bottom of the page.
+
+2. **Generate a User API Token**
+    * Follow this steps:
+
+        ```bash
+        User Management -> List All Users -> API Settings
+        ```
+    * Check the box for Enable API and click Create/Reset Token.
 
 ---
 

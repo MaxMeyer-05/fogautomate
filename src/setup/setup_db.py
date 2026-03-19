@@ -23,6 +23,7 @@ def create_database():
     CREATE DATABASE IF NOT EXISTS `{db_name}`;
     CREATE USER IF NOT EXISTS '{db_user}'@'localhost' IDENTIFIED BY '{db_password}';
     GRANT ALL PRIVILEGES ON `{db_name}`.* TO '{db_user}'@'localhost';
+    GRANT ALL PRIVILEGES ON fog.* TO '{db_user}'@'localhost';
     FLUSH PRIVILEGES;
     """
     
