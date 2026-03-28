@@ -39,8 +39,8 @@ def install_dependencies():
         print(f" -> Installing {pkg}...")
         if not run_command(["apt-get", "install", "-y", pkg]):
             print(f">>> Error: Failed to install '{pkg}'. Check logs for details.")
-            sys.exit(1)
-            
+            continue # Skip the package and continue
+
     print("\n>>> All dependencies installed successfully.")
 
 def install_fog():
