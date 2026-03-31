@@ -31,7 +31,8 @@ def install_dependencies():
     packages = [
         "python3-requests", 
         "python3-mysql.connector",
-        "python3-dotenv"
+        "python3-dotenv",
+        "wakeonlan",
     ]
 
     print("\n>>> Installing required packages...")

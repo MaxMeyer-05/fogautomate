@@ -260,10 +260,10 @@ def process_new_hosts():
                     continue 
 
                 room = find_room_for_ip(host_ip, rooms)
-                if not room: 
-                    continue 
-
-                target_group_id = int(str(room['fog_group_id']))
+                if room: 
+                    target_group_id = int(str(room['fog_group_id']))
+                else:
+                    target_group_id = 8 # Default "Unassigned" group ID
                 
                 needs_imaging = update_host_groups(host_id, host_name, target_group_id, valid_room_ids)
                 if is_new_registration or needs_imaging:
