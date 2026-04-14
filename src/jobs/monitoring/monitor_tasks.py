@@ -139,6 +139,3 @@ def check_task_states(timeout_minutes: int = 60):
             "The task monitoring script crashed unexpectedly. Check the logs for details.",
             priority="high"
         )
-
-if __name__ == "__main__":
-    check_task_states()

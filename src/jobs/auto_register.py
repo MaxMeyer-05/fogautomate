@@ -326,7 +326,3 @@ def cleanup_stale_hosts():
             f"The host cleanup script crashed unexpectedly.\n\nError: {e}",
             priority="high"
         )
-
-if __name__ == "__main__":
-    process_new_hosts()
-    cleanup_stale_hosts()

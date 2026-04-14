@@ -171,6 +171,3 @@ def run_wake_cycle():
             f"The Wake-on-LAN script crashed unexpectedly.\n\nError: {e}",
             priority="high"
         )
-
-if __name__ == "__main__":
-    run_wake_cycle()

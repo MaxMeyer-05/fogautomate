@@ -159,6 +159,3 @@ def run_scheduler():
             f"An error occurred during the execution of the FOG deployment scheduler.\n\nError: {e}\n\nPlease check the logs for details.",
             priority="high"
         )
-
-if __name__ == "__main__":
-    run_scheduler()

@@ -58,7 +58,7 @@ Before initializing the custom database, you must configure your environment var
 2. **Define Your Network Layout (room-map.json):** Ensure your JSON room map is placed at `data/mappings/room-map.json`. It must follow this structure so the database can map subnets to FOG Group IDs:
 
     ``` JSON
-    "HH": 
+    "facility": 
     [
         {
             "room": "Room 101", 
@@ -119,20 +119,8 @@ sudo crontab -e
 Add the following schedules to orchestrate the automation suite (adjust the paths if you installed the project somewhere other than `/opt/script`):
 
 ```bash
-# 1. Auto-Wake: Runs every 5 minutes (from 07:00 to 19:00 on all weekdays)
-*/5 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/auto_wake.py
-
-# 2. Auto-Register: Runs every 5 minutes (from 07:00 to 19:00 on all weekdays)
-*/5 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/auto_register.py
-
-# 3. Auto-Scheduler: Runs every hour (from 07:00 to 19:00 on all weekdays)
-0 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/auto_scheduler.py
-
-# 4. Storage Health Check: Runs twice a day (at 08:00 and 20:00)
-0 8,20 * * * /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/monitoring/check_storage.py
-
-# 5. Task Monitoring: Runs at the bottom of the hour (from 07:00 to 19:00 on all weekdays)
-30 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/monitoring/monitor_tasks.py
+# Runs every minute (from 07:00 to 19:00 on all weekdays)
+* 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/program.py
 ```
 
 ---

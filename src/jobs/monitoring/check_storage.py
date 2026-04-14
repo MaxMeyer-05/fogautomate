@@ -47,6 +47,3 @@ def check_image_partition(threshold_percent: float = 85.0):
             f"The storage monitoring script crashed.\n\nError: {e}",
             priority="high"
         )
-
-if __name__ == "__main__":
-    check_image_partition()
