@@ -1,5 +1,5 @@
 {
-    "HH": [
+    "facility": [
         { "ip": "172.16.25.0", "mask": "255.255.255.0", "room": "London", "fog_group_id": 1 },
         { "ip": "172.16.14.0", "mask": "255.255.255.0", "room": "Dublin", "fog_group_id": 2 },
         { "ip": "172.16.11.0", "mask": "255.255.255.0", "room": "Madrid", "fog_group_id": 3 },

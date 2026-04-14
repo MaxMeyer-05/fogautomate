@@ -102,7 +102,7 @@ def setup_database():
 
             if ROOM_MAP_JSON.exists():
                 with open(ROOM_MAP_JSON, 'r') as f:
-                    data = json.load(f).get("HH", [])
+                    data = json.load(f).get("facility", [])
                     
                     entries = [
                         (item['room'], item['ip'], item['mask'], item['fog_group_id']) 

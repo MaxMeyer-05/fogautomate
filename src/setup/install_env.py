@@ -16,7 +16,7 @@ def run_command(command: list, interactive: bool = False):
             subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True
     except subprocess.CalledProcessError as e:
-        print(f">>> Error: Command '{' '.join(command)}' failed with exit code {e.returncode}.")
+        print(f"\n>>> Error: Command '{' '.join(command)}' failed with exit code {e.returncode}.")
         return False
 
 def install_dependencies():
@@ -32,14 +32,14 @@ def install_dependencies():
         "python3-requests", 
         "python3-mysql.connector",
         "python3-dotenv",
-        "wakeonlan",
+        "wakeonlan"
     ]
 
     print("\n>>> Installing required packages...")
     for pkg in packages:
         print(f" -> Installing {pkg}...")
         if not run_command(["apt-get", "install", "-y", pkg]):
-            print(f" -> Error: Failed to install '{pkg}'.")
+            print(f" -> Error: Failed to install '{pkg}'. Skipping...\n")
             continue # Skip the package and continue
 
     print("\n>>> All dependencies installed successfully.")
