@@ -1,5 +1,5 @@
 import sys
-import sqlite3
+import requests
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -8,7 +8,7 @@ root_path = Path(__file__).resolve().parent.parent.parent
 if str(root_path) not in sys.path:
     sys.path.append(str(root_path))
 
-from config.config import DATABASE_FILE, GERMAN_TZ, FOG_TASK_TYPE, logging
+from config.config import API_COURSE_END_TIME, GERMAN_TZ, FOG_TASK_TYPE, logging
 from src.utils import db_session, fog_api_request
 import src.notifications.mailer as mailer
 
@@ -41,14 +41,29 @@ def get_scheduled_courses() -> List[Tuple[str, str]]:
     Returns:
         List[Tuple[str, str]]: A list of tuples containing room names and end times.
     """
-    if not DATABASE_FILE.exists():
-        logging.warning("SQLite courses database not found.")
+    if not API_COURSE_END_TIME:
+        logging.warning("API_COURSE_END_TIME is not configured in .env.")
         return []
         
-    with sqlite3.connect(DATABASE_FILE) as sqlite_conn:
-        sqlite_cursor = sqlite_conn.cursor()
-        sqlite_cursor.execute("SELECT room_name, end_time FROM courses_schedule")
-        return sqlite_cursor.fetchall()
+    try:
+        response = requests.get(API_COURSE_END_TIME, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        
+        courses = []
+        if isinstance(data, list):
+            for item in data:
+                room = str(item.get('room_name', ''))
+                end = str(item.get('end_time', ''))
+                
+                if room and end:
+                    courses.append((room, end))
+                    
+        return courses
+        
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Failed to fetch course schedule from API: {e}", exc_info=True)
+        return []
 
 def is_course_processed(cursor, room_name: str, db_course_time: str) -> bool:
     """

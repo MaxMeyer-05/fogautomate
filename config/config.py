@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
@@ -18,7 +17,6 @@ DATA_MAP_DIR = BASE_DIR / "data" / "mappings"
 for directory in [LOG_DIR, DATA_TEMP_DIR, DATA_MAP_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
 
-DATABASE_FILE = DATA_TEMP_DIR / "courses.db"
 ROOM_MAP_JSON = DATA_MAP_DIR / "room-map.json"
 
 GERMAN_TZ = timezone(timedelta(hours=1))
@@ -39,6 +37,8 @@ SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'fog@localhost')
 
 raw_emails = os.getenv('ADMIN_EMAILS', '')
 ADMIN_EMAILS = [email.strip() for email in raw_emails.split(',')] if raw_emails else []
+
+API_COURSE_END_TIME = os.getenv('API_COURSE_END_TIME', 'https://www.placeholder.de/api/courses')
 
 logger = logging.getLogger()
 if logger.hasHandlers():
