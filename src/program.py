@@ -55,7 +55,6 @@ def auto_register_wrapper():
     process_new_hosts()
     cleanup_stale_hosts()
 
-
 def main():
     """
     Main entry point for the program. Schedules and runs various tasks based on defined intervals and conditions.
@@ -97,7 +96,6 @@ def main():
         allowed_hours=[8, 20], # Runs only during the 8th and 20th hours
         exact_minute=0         # Runs exactly at 08:00 and 20:00
     )
-
 
 if __name__ == "__main__":
     main()
