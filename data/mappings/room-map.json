@@ -1,12 +1,12 @@
 {
     "facility": [
-        { "ip": "172.16.25.0", "mask": "255.255.255.0", "room": "London", "fog_group_id": 1 },
-        { "ip": "172.16.14.0", "mask": "255.255.255.0", "room": "Dublin", "fog_group_id": 2 },
-        { "ip": "172.16.11.0", "mask": "255.255.255.0", "room": "Madrid", "fog_group_id": 3 },
-        { "ip": "172.16.16.0", "mask": "255.255.255.0", "room": "Oslo", "fog_group_id": 4 },
-        { "ip": "172.16.26.0", "mask": "255.255.255.0", "room": "Paris", "fog_group_id": 5 },
-        { "ip": "172.16.17.0", "mask": "255.255.255.0", "room": "Prag", "fog_group_id": 6 },
-        { "ip": "172.16.13.0", "mask": "255.255.255.0", "room": "Zuerich", "fog_group_id": 7 },
-        { "ip": "0.0.0.0", "mask": "0.0.0.0", "room": "Unknown", "fog_group_id": 8 }
+        { "ip": "172.16.25.0", "mask": "255.255.255.0", "room": "London", "fog_group_id": 1, "facilityid": "" },
+        { "ip": "172.16.14.0", "mask": "255.255.255.0", "room": "Dublin", "fog_group_id": 2, "facilityid": "" },
+        { "ip": "172.16.11.0", "mask": "255.255.255.0", "room": "Madrid", "fog_group_id": 3, "facilityid": "" },
+        { "ip": "172.16.16.0", "mask": "255.255.255.0", "room": "Oslo", "fog_group_id": 4, "facilityid": "" },
+        { "ip": "172.16.26.0", "mask": "255.255.255.0", "room": "Paris", "fog_group_id": 5, "facilityid": "" },
+        { "ip": "172.16.17.0", "mask": "255.255.255.0", "room": "Prag", "fog_group_id": 6, "facilityid": "" },
+        { "ip": "172.16.13.0", "mask": "255.255.255.0", "room": "Zuerich", "fog_group_id": 7, "facilityid": "" },
+        { "ip": "0.0.0.0", "mask": "0.0.0.0", "room": "Unknown", "fog_group_id": 8, "facilityid": "" }
     ]
 }

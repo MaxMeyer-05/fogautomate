@@ -58,7 +58,7 @@ Before initializing the custom database, you must configure your environment var
     ADMIN_EMAILS=admin@yourdomain.com,it-support@yourdomain.com
 
     # API Endpoint for Course End Time
-    API_COURSE_END_TIME=https://www.placeholder.de/api/courses
+    API_COURSE_END_TIME=https://www.placeholder.de/api/event
     ```
 
 2. **Define Your Network Layout (room-map.json):** Ensure your JSON room map is placed at `/opt/script/fogautomate/data/mappings/room-map.json`. It must follow this structure so the database can map subnets to FOG Group IDs:

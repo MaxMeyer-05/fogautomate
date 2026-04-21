@@ -8,7 +8,7 @@ root_path = Path(__file__).resolve().parent.parent.parent
 if str(root_path) not in sys.path:
     sys.path.append(str(root_path))
 
-from config.config import API_COURSE_END_TIME, GERMAN_TZ, FOG_TASK_TYPE, logging
+from config.config import API_COURSE_END_TIME, GERMAN_TZ, FOG_TASK_TYPE, EVENT_TEMPLATE_JSON, logging
 from src.utils import db_session, fog_api_request
 import src.notifications.mailer as mailer
 

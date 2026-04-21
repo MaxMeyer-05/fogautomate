@@ -62,6 +62,7 @@ def setup_database():
                     ip_address VARCHAR(45) NOT NULL,
                     subnet_mask VARCHAR(45) NOT NULL,
                     fog_group_id INT NOT NULL,
+                    facilityid INT DEFAULT NULL,
                     PRIMARY KEY (room_name),
                     UNIQUE KEY (fog_group_id)
                 ) ENGINE=InnoDB;
@@ -105,17 +106,18 @@ def setup_database():
                     data = json.load(f).get("facility", [])
                     
                     entries = [
-                        (item['room'], item['ip'], item['mask'], item['fog_group_id']) 
+                        (item['room'], item['ip'], item['mask'], item['fog_group_id'], item['facilityid']) 
                         for item in data
                     ]
                     
                     query = """
-                        INSERT INTO rooms (room_name, ip_address, subnet_mask, fog_group_id) 
-                        VALUES (%s, %s, %s, %s)
+                        INSERT INTO rooms (room_name, ip_address, subnet_mask, fog_group_id, facilityid) 
+                        VALUES (%s, %s, %s, %s, %s)
                         ON DUPLICATE KEY UPDATE 
                             ip_address=VALUES(ip_address), 
                             subnet_mask=VALUES(subnet_mask), 
-                            fog_group_id=VALUES(fog_group_id)
+                            fog_group_id=VALUES(fog_group_id),
+                            facilityid=VALUES(facilityid)
                     """
                     cursor.executemany(query, entries)
                     logging.info(f"Master Data Setup: {len(entries)} rooms synced to MariaDB.")
