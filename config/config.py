@@ -17,7 +17,6 @@ DATA_MAP_DIR = BASE_DIR / "data" / "mappings"
 for directory in [LOG_DIR, DATA_TEMP_DIR, DATA_MAP_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
 
-EVENT_TEMPLATE_JSON = DATA_MAP_DIR / "event-template.json"
 ROOM_MAP_JSON = DATA_MAP_DIR / "room-map.json"
 
 GERMAN_TZ = timezone(timedelta(hours=1))

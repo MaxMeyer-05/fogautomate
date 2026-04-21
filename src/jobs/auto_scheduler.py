@@ -8,7 +8,7 @@ root_path = Path(__file__).resolve().parent.parent.parent
 if str(root_path) not in sys.path:
     sys.path.append(str(root_path))
 
-from config.config import API_COURSE_END_TIME, GERMAN_TZ, FOG_TASK_TYPE, EVENT_TEMPLATE_JSON, logging
+from config.config import API_COURSE_END_TIME, GERMAN_TZ, FOG_TASK_TYPE, logging
 from src.utils import db_session, fog_api_request
 import src.notifications.mailer as mailer
 
@@ -48,16 +48,29 @@ def get_scheduled_courses() -> List[Tuple[str, str]]:
     try:
         response = requests.get(API_COURSE_END_TIME, timeout=15)
         response.raise_for_status()
-        data = response.json()
+        json_response = response.json()
         
         courses = []
-        if isinstance(data, list):
-            for item in data:
-                room = str(item.get('room_name', ''))
-                end = str(item.get('end_time', ''))
+        course_list = json_response.get('data', [])
+        
+        if isinstance(course_list, list):
+            for item in course_list:
+                raw_facility_id = item.get('facilityid')
                 
-                if room and end:
-                    courses.append((room, end))
+                try:
+                    facility_id = int(str(raw_facility_id).strip())
+                    if not (1 <= facility_id <= 8):
+                        continue
+                except (ValueError, TypeError):
+                    continue
+                    
+                room = str(facility_id)
+                end_date = str(item.get('end', '')).strip()
+                end_time = str(item.get('endtime', '')).strip()
+                
+                if room and end_date and end_time:
+                    full_end_time_str = f"{end_date}T{end_time}"
+                    courses.append((room, full_end_time_str))
                     
         return courses
         
