@@ -302,3 +302,6 @@ class HostService:
                     host_info[hid]['macs'].append(row['mac_address'])
                 
         return host_info
+    
+    def cleanup_stale_hosts(self, days_stale: int = 14):        
+        pass

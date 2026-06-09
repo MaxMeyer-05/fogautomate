@@ -15,11 +15,11 @@ def run_scheduler():
     """
     now = datetime.now(GERMAN_TZ)
     cutoff_date = now - timedelta(hours=2)
-    max_planning_date = now + timedelta(hours=24)
-    
-    course_service = CourseService()
+    max_planning_date = now + timedelta(hours=24)    
 
     try:
+        course_service = CourseService()
+
         with db.get_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
