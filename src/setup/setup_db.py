@@ -22,7 +22,6 @@ def create_database():
     CREATE DATABASE IF NOT EXISTS {db_name};
     CREATE USER IF NOT EXISTS '{db_user}'@'127.0.0.1' IDENTIFIED BY '{db_pass}';
     
-    -- ADD THIS LINE: Force the user to use the non-SSL password hash
     ALTER USER '{db_user}'@'127.0.0.1' IDENTIFIED WITH mysql_native_password BY '{db_pass}';
     
     GRANT ALL PRIVILEGES ON {db_name}.* TO '{db_user}'@'127.0.0.1';
