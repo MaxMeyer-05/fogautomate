@@ -22,9 +22,10 @@ GERMAN_TZ = timezone(timedelta(hours=1))
 FOG_DB_CONFIG = {
     'host': os.getenv('DB_HOST', '127.0.0.1'), 
     'user': os.getenv('DB_USER', 'fog'),
-    'password': os.getenv('DB_PASSWORD', ''),
+    'password': os.getenv('DB_PASSWORD', 'YourDatabasePassword'),
     'database': os.getenv('DB_NAME', 'fog_automation'),
-    'autocommit': True
+    'autocommit': True,
+    'ssl_disabled': True
 }
 
 FOG_API_URL = os.getenv('FOG_API_URL', 'http://127.0.0.1/fog')
