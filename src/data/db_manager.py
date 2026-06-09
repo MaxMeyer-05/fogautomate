@@ -1,5 +1,7 @@
 from contextlib import contextmanager
 import mysql.connector
+from mysql.connector import pooling
+
 from config.config import FOG_DB_CONFIG
 
 from src.logger.logger import LogManager
@@ -24,7 +26,7 @@ class DatabaseManager:
         self.pool = None
         
         try:
-            self.pool = mysql.connector.pooling.MySQLConnectionPool(
+            self.pool = pooling.MySQLConnectionPool(
                 pool_name=self.pool_name,
                 pool_size=self.pool_size,
                 pool_reset_session=True,

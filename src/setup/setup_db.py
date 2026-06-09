@@ -117,7 +117,6 @@ def setup_database():
                             fog_group_id=VALUES(fog_group_id)
                     """
                     cursor.executemany(query, entries)
-                    logging.info(f"Master Data Setup: {len(entries)} rooms synced to MariaDB.")
 
             conn.commit()
             print(">>> Database Setup complete. Ready for automation.")
