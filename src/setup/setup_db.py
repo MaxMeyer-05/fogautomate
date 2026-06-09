@@ -14,15 +14,18 @@ def create_database():
     """
     Create the database if it doesn't exist.
     """
-    db_name = FOG_DB_CONFIG.get('database')
-    db_user = FOG_DB_CONFIG.get('user')
-    db_password = FOG_DB_CONFIG.get('password')
-    
+    db_name = FOG_DB_CONFIG['database']
+    db_user = FOG_DB_CONFIG['user']
+    db_pass = FOG_DB_CONFIG['password']
+
     sql_commands = f"""
-    CREATE DATABASE IF NOT EXISTS `{db_name}`;
-    CREATE USER IF NOT EXISTS '{db_user}'@'localhost' IDENTIFIED BY '{db_password}';
-    GRANT ALL PRIVILEGES ON `{db_name}`.* TO '{db_user}'@'localhost';
-    GRANT ALL PRIVILEGES ON fog.* TO '{db_user}'@'localhost';
+    CREATE DATABASE IF NOT EXISTS {db_name};
+    CREATE USER IF NOT EXISTS '{db_user}'@'127.0.0.1' IDENTIFIED BY '{db_pass}';
+    
+    -- ADD THIS LINE: Force the user to use the non-SSL password hash
+    ALTER USER '{db_user}'@'127.0.0.1' IDENTIFIED WITH mysql_native_password BY '{db_pass}';
+    
+    GRANT ALL PRIVILEGES ON {db_name}.* TO '{db_user}'@'127.0.0.1';
     FLUSH PRIVILEGES;
     """
     
