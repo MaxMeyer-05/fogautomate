@@ -1,13 +1,24 @@
+import sys
+from pathlib import Path
+
+root_path = Path(__file__).resolve().parent.parent
+if str(root_path) not in sys.path:
+    sys.path.append(str(root_path))
+
 from datetime import datetime
 from typing import Callable, List, Optional
 
 import src.notifications.mailer as mailer
-from jobs.monitoring.check_storage import check_image_partition
-from jobs.monitoring.monitor_tasks import check_task_states
-from jobs.auto_register import process_new_hosts, cleanup_stale_hosts
-from jobs.auto_scheduler import run_scheduler
-from jobs.auto_wake import run_wake_cycle
-from config.config import logging
+from config.config import GERMAN_TZ
+
+from src.jobs.monitoring.check_storage import check_image_partition
+from src.jobs.monitoring.monitor_tasks import check_task_states
+from src.jobs.auto_register import process_new_hosts
+from src.jobs.auto_scheduler import run_scheduler
+from src.jobs.auto_wake import run_wake_cycle
+
+from src.logger.logger import LogManager
+logging = LogManager.get_logger(__name__)
 
 def run_scheduled_task(
     task_func: Callable,
@@ -27,7 +38,7 @@ def run_scheduled_task(
         minute_interval (Optional[int]): If set, runs at intervals of this many minutes (e.g., 15 for :00, :15, :30, :45).
         exact_minute (Optional[int]): If set, runs only at this exact minute of the hour (0-59).
     """
-    now = datetime.now()
+    now = datetime.now(GERMAN_TZ)
 
     if now.weekday() not in allowed_weekdays:
         return
@@ -48,22 +59,13 @@ def run_scheduled_task(
             logging.error(f"Error in {task_name}: {e}", exc_info=True)
             mailer._send_email(f"[CRITICAL] {task_name} Failed", f"Error:\n\n{e}", priority="high")
 
-def auto_register_wrapper():
-    """
-    Wrapper function to run both auto-register tasks sequentially.
-    """
-    process_new_hosts()
-    cleanup_stale_hosts()
 
 def main():
-    """
-    Main entry point for the program. Schedules and runs various tasks based on defined intervals and conditions.
-    """
-    # Define standard working hours (07:00 through 18:59)
+    logging.info("FOG Master Scheduler: Evaluating execution triggers...")    
     working_hours = list(range(7, 19))
     
     run_scheduled_task(
-        task_func=auto_register_wrapper,
+        task_func=process_new_hosts,
         task_name="Auto-Register",
         allowed_hours=working_hours,
         minute_interval=15  # Runs at :00, :15, :30, :45

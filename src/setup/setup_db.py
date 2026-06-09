@@ -8,8 +8,7 @@ root_path = Path(__file__).resolve().parent.parent.parent
 if str(root_path) not in sys.path:
     sys.path.append(str(root_path))
 
-from config.config import ROOM_MAP_JSON, FOG_DB_CONFIG, logging
-from src.utils import db_session
+from config.config import ROOM_MAP_JSON, FOG_DB_CONFIG
 
 def create_database():
     """
@@ -39,9 +38,7 @@ def create_database():
         print(f">>> Database '{db_name}' provisioned successfully.")
         
     except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.strip() if e.stderr else str(e)
-        logging.error(f"Failed to provision database via mysql CLI: {error_msg}")
-        print(f">>> CRITICAL ERROR: Could not provision database. Check logs for details.")
+        print(f">>> CRITICAL ERROR: Could not provision database. MySQL error: {e.stderr.strip()}")
         sys.exit(1)
     except FileNotFoundError:
         print(">>> CRITICAL ERROR: 'mysql' command not found. Is MariaDB installed?")
@@ -53,7 +50,9 @@ def setup_database():
     """
     print(">>> Setting up the database schema...")
     try:
-        with db_session() as conn:
+        from src.data.db_manager import db
+
+        with db.get_connection() as conn:
             cursor = conn.cursor()
 
             cursor.execute("""
@@ -124,11 +123,10 @@ def setup_database():
             print(">>> Database Setup complete. Ready for automation.")
             
     except Exception as e:
-        logging.error("Fatal error during database setup.", exc_info=True)
-        print(f">>> Error: Database setup failed. Check logs for details.")
+        print(f">>> Error: Database setup failed. {e}")
 
 if __name__ == "__main__":
-    if os.geteuid() != 0: # Check if the script is run as root (getuid() only exists on Linux and Unix systems)
+    if os.geteuid() != 0:
         print(">>> ERROR: This setup script must be run as root (sudo).")
         sys.exit(1)
         
