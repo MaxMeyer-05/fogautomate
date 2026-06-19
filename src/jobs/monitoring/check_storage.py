@@ -1,13 +1,9 @@
 import shutil
-import sys
-from pathlib import Path
 
-root_path = Path(__file__).resolve().parent.parent.parent.parent
-if str(root_path) not in sys.path:
-    sys.path.append(str(root_path))
-
-from config.config import logging
 import src.notifications.mailer as mailer
+
+from src.logger.logger import LogManager
+logging = LogManager.get_logger("check_storage")
 
 def check_image_partition(threshold_percent: float = 85.0):
     """
@@ -47,6 +43,3 @@ def check_image_partition(threshold_percent: float = 85.0):
             f"The storage monitoring script crashed.\n\nError: {e}",
             priority="high"
         )
-
-if __name__ == "__main__":
-    check_image_partition()

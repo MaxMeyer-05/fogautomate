@@ -16,7 +16,7 @@ def run_command(command: list, interactive: bool = False):
             subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True
     except subprocess.CalledProcessError as e:
-        print(f">>> Error: Command '{' '.join(command)}' failed with exit code {e.returncode}.")
+        print(f"\n>>> Error: Command '{' '.join(command)}' failed with exit code {e.returncode}.")
         return False
 
 def install_dependencies():
@@ -31,16 +31,17 @@ def install_dependencies():
     packages = [
         "python3-requests", 
         "python3-mysql.connector",
-        "python3-dotenv"
+        "python3-dotenv",
+        "wakeonlan"
     ]
 
     print("\n>>> Installing required packages...")
     for pkg in packages:
         print(f" -> Installing {pkg}...")
         if not run_command(["apt-get", "install", "-y", pkg]):
-            print(f">>> Error: Failed to install '{pkg}'. Check logs for details.")
-            sys.exit(1)
-            
+            print(f" -> Error: Failed to install '{pkg}'. Skipping...\n")
+            continue # Skip the package and continue
+
     print("\n>>> All dependencies installed successfully.")
 
 def install_fog():
@@ -51,14 +52,14 @@ def install_fog():
     fog_dir = "/opt/fogproject"
 
     if not os.path.exists(fog_dir):
-        print(" -> Cloning FOG Server repository (this may take a while)...")
+        print(" -> Installing FOG Server (this may take a while)...")
         if not run_command(["git", "clone", "https://github.com/FOGProject/fogproject.git", fog_dir]):
-            print(">>> Error: Failed to clone FOG repository. Check logs for details.")
+            print(">>> Error: Failed to install FOG Server.")
             sys.exit(1)
     else:
         print(" -> Updating FOG Server. Pulling latest changes...")
         if not run_command(["git", "-C", fog_dir, "pull"]):
-            print(">>> Error: Failed to update FOG repository. Check logs for details.")
+            print(">>> Error: Failed to update FOG Server.")
             sys.exit(1)
     
     print("\n" + "="*50)
