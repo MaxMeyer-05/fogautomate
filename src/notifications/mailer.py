@@ -1,13 +1,10 @@
 import smtplib
 from email.message import EmailMessage
-import sys
-from pathlib import Path
 
-root_path = Path(__file__).resolve().parent.parent.parent
-if str(root_path) not in sys.path:
-    sys.path.append(str(root_path))
+from config.config import SMTP_HOST, SENDER_EMAIL, ADMIN_EMAILS
 
-from config.config import SMTP_HOST, SENDER_EMAIL, ADMIN_EMAILS, logging
+from src.logger.logger import LogManager
+logging = LogManager.get_logger("mailer")
 
 def _send_email(subject: str, body: str, priority: str = "normal"):
     """

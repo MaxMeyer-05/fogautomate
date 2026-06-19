@@ -21,7 +21,10 @@ This project is a complete, state-aware Python automation pipeline built on top 
 ## Installation Guide
 
 ### Step 1: Clone the Repository
-Clone or copy this project into your desired directory on the Linux server (e.g., `/opt/script`).
+Clone or copy this project into your desired directory on the Linux server (e.g., `/opt/script/`).
+```bash
+sudo git clone https://github.com/MaxMeyer-05/fogautomate.git /opt/script/
+```
 
 ### Step 2: Install Base Dependencies & FOG Server
 This suite includes an automated bootstrapper that will install OS dependencies (Python, Git) and launch the official FOG Server installer.
@@ -36,7 +39,7 @@ Note: The script also automatically installs the FOG server (you still have to a
 
 Before initializing the custom database, you must configure your environment variables and network map.
 
-1. **Secure Credentials (.env file):** Create a new file named strictly .env in the root of your project directory (`/opt/fog-automation/.env`). Add your configurations here (the SMTP feature is optional):
+1. **Secure Credentials (.env file):** Create a new file named strictly .env in the root of your project directory (`/opt/script/fogautomate/.env`). Add your configurations here (the SMTP feature is optional):
     ```bash
     # Database Configuration
     DB_HOST=127.0.0.1
@@ -53,12 +56,15 @@ Before initializing the custom database, you must configure your environment var
     SENDER_EMAIL=fog-server@yourdomain.com
     # Use a comma to separate multiple admin emails
     ADMIN_EMAILS=admin@yourdomain.com,it-support@yourdomain.com
+
+    # API Endpoint for Course End Time
+    API_COURSE_END_TIME=https://www.placeholder.de/api/event
     ```
 
-2. **Define Your Network Layout (room-map.json):** Ensure your JSON room map is placed at `data/mappings/room-map.json`. It must follow this structure so the database can map subnets to FOG Group IDs:
+2. **Define Your Network Layout (room-map.json):** Ensure your JSON room map is placed at `/opt/script/fogautomate/data/mappings/room-map.json`. It must follow this structure so the database can map subnets to FOG Group IDs:
 
     ``` JSON
-    "HH": 
+    "facility": 
     [
         {
             "room": "Room 101", 
@@ -116,23 +122,10 @@ Open the root crontab editor:
 sudo crontab -e
 ```
 
-Add the following schedules to orchestrate the automation suite (adjust the paths if you installed the project somewhere other than `/opt/script`):
-
+Add the following schedule to orchestrate the automation suite (adjust the paths if you installed the project in a location other than `/opt/srcipt/`):
 ```bash
-# 1. Auto-Wake: Runs every 5 minutes (from 07:00 to 19:00 on all weekdays)
-*/5 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/auto_wake.py
-
-# 2. Auto-Register: Runs every 5 minutes (from 07:00 to 19:00 on all weekdays)
-*/5 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/auto_register.py
-
-# 3. Auto-Scheduler: Runs every hour (from 07:00 to 19:00 on all weekdays)
-0 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/auto_scheduler.py
-
-# 4. Storage Health Check: Runs twice a day (at 08:00 and 20:00)
-0 8,20 * * * /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/monitoring/check_storage.py
-
-# 5. Task Monitoring: Runs at the bottom of the hour (from 07:00 to 19:00 on all weekdays)
-30 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogserver/src/jobs/monitoring/monitor_tasks.py
+# Runs every minute (from 07:00 to 19:00 on all weekdays)
+* 7-19 * * 1-5 /usr/bin/python3 /opt/srcipt/fogautomate/src/program.py
 ```
 
 ---
