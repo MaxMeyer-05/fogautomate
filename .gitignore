@@ -4,8 +4,4 @@
 /tests/**
 **/.vscode/
 *.env
-<<<<<<< HEAD
 **/logs/
-=======
-**/logs/
->>>>>>> dev

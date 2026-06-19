@@ -37,8 +37,4 @@ SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'fog@localhost')
 raw_emails = os.getenv('ADMIN_EMAILS', '')
 ADMIN_EMAILS = [email.strip() for email in raw_emails.split(',')] if raw_emails else []
 
-<<<<<<< HEAD
 API_COURSE_END_TIME = os.getenv('API_COURSE_END_TIME', 'https://www.placeholder.de/api/courses')
-=======
-API_COURSE_END_TIME = os.getenv('API_COURSE_END_TIME', 'https://www.placeholder.de/api/courses')
->>>>>>> dev
