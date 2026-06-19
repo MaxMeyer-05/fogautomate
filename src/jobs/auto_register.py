@@ -48,4 +48,8 @@ def process_new_hosts():
         mailer._send_email("[CRITICAL] Auto-Register Failed", f"Error:\n{e}", priority="high")
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     process_new_hosts()
+=======
+    process_new_hosts()
+>>>>>>> dev
